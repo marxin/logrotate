@@ -698,10 +698,8 @@ int readAllConfigPaths(const char **paths)
     }
 
     for (file = paths; *file; file++) {
-	if (readConfigPath(*file, &defConfig)) {
+	if (readConfigPath(*file, &defConfig))
 	    result = 1;
-	    break;
-	}
     }
     free_2d_array(tabooPatterns, tabooCount);
     freeLogInfo(&defConfig);
@@ -1285,17 +1283,18 @@ static int readConfigFile(const char *configFile, struct logInfo *defConfig)
 							&buf, length)) != NULL) {
 
 						message(MESS_DEBUG, "including %s\n", key);
-						if (++recursion_depth > MAX_NESTING) {
+						if (recursion_depth >= MAX_NESTING) {
 							message(MESS_ERROR, "%s:%d include nesting too deep\n",
 									configFile, lineNum);
-							--recursion_depth;
-							goto error;
+							continue;
 						}
-						if (readConfigPath(key, newlog)) {
-							--recursion_depth;
-							goto error;
-						}
+
+						++recursion_depth;
+						rv = readConfigPath(key, newlog);
 						--recursion_depth;
+
+						if (rv)
+							continue;
 					}
 					else continue;
 				} else if (!strcmp(key, "olddir")) {
