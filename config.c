@@ -1286,6 +1286,7 @@ static int readConfigFile(const char *configFile, struct logInfo *defConfig)
 						if (recursion_depth >= MAX_NESTING) {
 							message(MESS_ERROR, "%s:%d include nesting too deep\n",
 									configFile, lineNum);
+							logerror = 1;
 							continue;
 						}
 
@@ -1293,8 +1294,10 @@ static int readConfigFile(const char *configFile, struct logInfo *defConfig)
 						rv = readConfigPath(key, newlog);
 						--recursion_depth;
 
-						if (rv)
+						if (rv) {
+							logerror = 1;
 							continue;
+						}
 					}
 					else continue;
 				} else if (!strcmp(key, "olddir")) {
